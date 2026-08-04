@@ -1,0 +1,4 @@
+playwright
+flask
+openpyxl
+beautifulsoup4
