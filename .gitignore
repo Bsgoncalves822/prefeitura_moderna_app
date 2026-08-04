@@ -1,0 +1,8 @@
+__pycache__/
+config/settings.json
+config/companies_cache.json
+pm_checkpoint.json
+output/
+*.log
+*.png
+debug_*.html
