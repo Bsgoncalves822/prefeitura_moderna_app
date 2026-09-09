@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Prefeitura Moderna — ORPROCON</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap');
+  :root {
+    --bg:#f4f5f7;--surface:#fff;--surface2:#f8f9fb;--border:#e2e5ea;
+    --border-strong:#c8cdd6;--accent:#1a7a4a;--accent-light:#e6f4ed;
+    --accent-hover:#145e38;--accent2:#1a56a0;--accent2-light:#e8f0fb;
+    --accent2-hover:#154285;--text:#1a1f2e;--text-secondary:#4a5568;
+    --text-muted:#8896ab;--red:#c0392b;--red-light:#fdf0ef;
+    --accent3:#c05c00;--accent3-light:#fdf0e6;--accent3-hover:#a34d00;
+    --radius:6px;--font:'DM Sans',system-ui,sans-serif;
+    --font-mono:'DM Mono','Courier New',monospace;
+    --shadow-sm:0 1px 3px rgba(0,0,0,.07);--shadow:0 2px 8px rgba(0,0,0,.08);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:13.5px;height:100vh;display:flex;flex-direction:column;overflow:hidden;-webkit-font-smoothing:antialiased}
+  .topbar{display:flex;align-items:center;background:var(--surface);border-bottom:1px solid var(--border);height:50px;flex-shrink:0;box-shadow:var(--shadow-sm)}
+  .brand{display:flex;align-items:center;gap:10px;padding:0 22px;height:100%;border-right:1px solid var(--border);min-width:190px}
+  .brand-logo{width:26px;height:26px;background:var(--accent);border-radius:5px;display:flex;align-items:center;justify-content:center;color:white;font-size:11px;font-weight:700;flex-shrink:0}
+  .brand-name{font-size:13px;font-weight:600;color:var(--text)}
+  .brand-sub{font-size:11px;color:var(--text-muted)}
+  .module-tabs{display:flex;align-items:center;height:100%}
+  .module-tab{display:flex;align-items:center;padding:0 22px;height:100%;background:none;border:none;border-bottom:2px solid transparent;color:var(--text-muted);font-family:var(--font);font-size:12.5px;font-weight:500;cursor:pointer;transition:all .15s;white-space:nowrap}
+  .module-tab:hover{color:var(--text-secondary);background:var(--bg)}
+  .module-tab.green.active{color:var(--accent);border-bottom-color:var(--accent);font-weight:600;background:var(--accent-light)}
+  .module-tab.blue.active{color:var(--accent2);border-bottom-color:var(--accent2);font-weight:600;background:var(--accent2-light)}
+  .module-tab.orange.active{color:var(--accent3);border-bottom-color:var(--accent3);font-weight:600;background:var(--accent3-light)}
+  /* Layout */
+  .main{display:grid;grid-template-columns:300px 1fr;flex:1;overflow:hidden}
+  .left-panel{background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden}
+  .right-panel{display:flex;flex-direction:column;overflow:hidden}
+  /* Left panel sections */
+  .section{padding:14px 16px;border-bottom:1px solid var(--border);flex-shrink:0}
+  .section-title{font-size:10.5px;font-weight:700;letter-spacing:.08em;color:var(--text-muted);text-transform:uppercase;margin-bottom:10px}
+  .form-field{margin-bottom:10px}
+  .form-label{display:block;font-size:11.5px;font-weight:600;color:var(--text-secondary);margin-bottom:4px}
+  .form-input{width:100%;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:7px 10px;color:var(--text);font-family:var(--font);font-size:13px;outline:none;transition:border-color .15s,box-shadow .15s;box-shadow:var(--shadow-sm)}
+  .form-input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(26,122,74,.1)}
+  .form-input::placeholder{color:var(--text-muted)}
+  .form-input.mono{font-family:var(--font-mono);font-size:12px}
+  .form-hint{font-size:11px;color:var(--text-muted);margin-top:3px}
+  .check-row{display:flex;align-items:center;gap:8px;margin-bottom:6px;cursor:pointer;user-select:none}
+  .check-row input[type=checkbox]{width:14px;height:14px;accent-color:var(--accent)}
+  .check-row span{font-size:12.5px;color:var(--text-secondary)}
+  /* Company picker (NFS-e tab) */
+  .company-picker{flex:1;display:flex;flex-direction:column;overflow:hidden;display:none}
+  .company-picker.active{display:flex}
+  .picker-meta{display:flex;justify-content:space-between;align-items:center;padding:8px 16px;border-bottom:1px solid var(--border);flex-shrink:0;background:var(--surface2)}
+  .picker-count{font-size:11.5px;color:var(--text-muted)}
+  .picker-actions{display:flex;gap:8px}
+  .picker-btn{background:none;border:none;color:var(--accent2);font-family:var(--font);font-size:11.5px;font-weight:500;cursor:pointer;padding:0}
+  .picker-btn:hover{text-decoration:underline}
+  .picker-search{padding:8px 16px;border-bottom:1px solid var(--border);flex-shrink:0}
+  .search-input{width:100%;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:6px 10px;color:var(--text);font-family:var(--font);font-size:12.5px;outline:none}
+  .search-input:focus{border-color:var(--accent2)}
+  .search-input::placeholder{color:var(--text-muted)}
+  .company-list{flex:1;overflow-y:auto}
+  .company-list::-webkit-scrollbar{width:5px}
+  .company-list::-webkit-scrollbar-thumb{background:var(--border-strong);border-radius:3px}
+  .company-item{display:flex;align-items:center;gap:10px;padding:7px 16px;cursor:pointer;border-bottom:1px solid var(--border);transition:background .1s}
+  .company-item:hover{background:var(--surface2)}
+  .company-item.selected{background:var(--accent2-light)}
+  .co-check{width:14px;height:14px;border:1.5px solid var(--border-strong);border-radius:3px;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:var(--surface);transition:all .12s}
+  .company-item.selected .co-check{background:var(--accent2);border-color:var(--accent2)}
+  .company-item.selected .co-check::after{content:'\2713';font-size:9px;color:white;font-weight:700}
+  .co-name{font-size:12px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:500}
+  .company-item.selected .co-name{color:var(--accent2)}
+  .co-id{font-size:10px;color:var(--text-muted);font-family:var(--font-mono)}
+  .fetch-btn{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;padding:8px;border:1px dashed var(--border-strong);border-radius:var(--radius);background:none;color:var(--text-muted);font-family:var(--font);font-size:12px;cursor:pointer;transition:all .15s;margin:0}
+  .fetch-btn:hover{border-color:var(--accent2);color:var(--accent2);background:var(--accent2-light)}
+  /* Buttons */
+  .run-btn{display:flex;align-items:center;justify-content:center;gap:9px;width:100%;padding:10px 16px;border:none;border-radius:var(--radius);font-family:var(--font);font-size:13px;font-weight:600;cursor:pointer;transition:all .15s;box-shadow:var(--shadow-sm)}
+  .run-btn.green{background:var(--accent);color:white}
+  .run-btn.green:hover:not(:disabled){background:var(--accent-hover)}
+  .run-btn.blue{background:var(--accent2);color:white}
+  .run-btn.blue:hover:not(:disabled){background:var(--accent2-hover)}
+  .run-btn.orange{background:var(--accent3);color:white}
+  .run-btn.orange:hover:not(:disabled){background:var(--accent3-hover)}
+  .run-btn:disabled{opacity:.45;cursor:not-allowed}
+  .run-btn .spinner{width:14px;height:14px;border:2px solid rgba(255,255,255,.35);border-top-color:white;border-radius:50%;animation:spin .7s linear infinite;display:none}
+  .run-btn.running .spinner{display:block}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .save-btn{width:100%;padding:7px;border:1px solid var(--border);border-radius:var(--radius);background:var(--surface2);color:var(--text-secondary);font-family:var(--font);font-size:12px;font-weight:500;cursor:pointer;transition:background .15s}
+  .save-btn:hover{background:var(--border)}
+  /* Right panel */
+  .module-content{flex:1;overflow-y:auto;padding:20px}
+  .module-view{display:none}
+  .module-view.active{display:block}
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px 18px;margin-bottom:14px;box-shadow:var(--shadow-sm)}
+  .card-title{font-size:10.5px;font-weight:700;letter-spacing:.09em;color:var(--text-muted);text-transform:uppercase;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--border)}
+  .info-box{background:var(--accent-light);border:1px solid rgba(26,122,74,.2);border-left:3px solid var(--accent);border-radius:var(--radius);padding:10px 13px;font-size:12.5px;color:var(--text-secondary);line-height:1.6;margin-bottom:14px}
+  .info-box.blue{background:var(--accent2-light);border-color:rgba(26,86,160,.2);border-left-color:var(--accent2)}
+  .status-msg{padding:9px 13px;border-radius:var(--radius);font-size:12.5px;font-weight:500;display:none;border-left:3px solid;margin-bottom:10px}
+  .status-msg.show{display:block}
+  .status-msg.running{background:var(--accent-light);color:var(--accent);border-left-color:var(--accent)}
+  .status-msg.running.blue{background:var(--accent2-light);color:var(--accent2);border-left-color:var(--accent2)}
+  .status-msg.success{background:#e6f4ed;color:#145e38;border-left-color:#1a7a4a}
+  .status-msg.error{background:var(--red-light);color:var(--red);border-left-color:var(--red)}
+  .progress-log{background:#1a1f2e;border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px;max-height:300px;overflow-y:auto;display:none;font-family:var(--font-mono)}
+  .progress-log.show{display:block}
+  .log-line{font-size:11px;padding:1px 0;color:#8896ab;line-height:1.6}
+  .log-line.ok{color:#4ade80}
+  .log-line.err{color:#f87171}
+  .dl-btn{display:none;align-items:center;justify-content:center;gap:8px;width:100%;padding:9px;border:1.5px solid var(--accent);border-radius:var(--radius);background:white;color:var(--accent);font-family:var(--font);font-size:13px;font-weight:600;cursor:pointer;margin-top:10px}
+  .dl-btn.show{display:flex}
+  .dl-btn:hover{background:var(--accent-light)}
+  /* Summary table */
+  .summary-table{width:100%;border-collapse:collapse;font-size:12px;margin-top:10px}
+  .summary-table th{background:var(--accent2);color:white;padding:6px 10px;text-align:left;font-weight:600}
+  .summary-table td{padding:5px 10px;border-bottom:1px solid var(--border)}
+  .summary-table tr:nth-child(even) td{background:var(--surface2)}
+  .badge-fed{background:#fdebd0;color:#c0392b;border-radius:3px;padding:1px 6px;font-size:10.5px;font-weight:600}
+  /* Selection pill */
+  .sel-pill{font-size:12px;color:var(--text-secondary);padding:3px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:20px}
+  .sel-pill span{color:var(--accent2);font-weight:700}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="brand">
+    <div class="brand-logo">PM</div>
+    <div>
+      <div class="brand-name">Prefeitura Moderna</div>
+      <div class="brand-sub">ORPROCON</div>
+    </div>
+  </div>
+  <div class="module-tabs">
+    <button class="module-tab green active" onclick="switchTab('iss')" id="tab-iss">ISS Substituto</button>
+    <button class="module-tab blue" onclick="switchTab('nfse')" id="tab-nfse">NFS-e (PM)</button>
+    <button class="module-tab orange" onclick="switchTab('guias')" id="tab-guias">Guias / Boletos</button>
+  </div>
+</div>
+
+<div class="main">
+
+  <!-- Left panel -->
+  <div class="left-panel">
+
+    <!-- Credentials (always visible) -->
+    <div class="section">
+      <div class="section-title">Credenciais</div>
+      <div class="form-field">
+        <label class="form-label">Usuário</label>
+        <input class="form-input mono" type="text" id="user" placeholder="1705">
+      </div>
+      <div class="form-field">
+        <label class="form-label">Senha</label>
+        <input class="form-input mono" type="password" id="password" placeholder="••••••••">
+      </div>
+      <button class="save-btn" onclick="saveSettings()">Salvar credenciais</button>
+    </div>
+
+    <!-- ISS config (shown on ISS tab) -->
+    <div class="section" id="iss-config">
+      <div class="section-title">Configuração ISS</div>
+      <div class="form-field">
+        <label class="form-label">Período alvo (MMAAAA)</label>
+        <input class="form-input mono" type="text" id="iss-period" placeholder="062026" maxlength="6">
+        <div class="form-hint">Deixe vazio para período fechado mais recente por empresa</div>
+      </div>
+      <div class="form-field">
+        <label class="form-label">Workers paralelos</label>
+        <input class="form-input mono" type="number" id="iss-workers" value="4" min="1" max="8">
+        <div class="form-hint">4 recomendado — mais pode sobrecarregar o portal</div>
+      </div>
+      <div class="form-field">
+        <label class="form-label">Limite (opcional — para teste)</label>
+        <input class="form-input mono" type="number" id="iss-limit" placeholder="10">
+      </div>
+      <label class="check-row">
+        <input type="checkbox" id="iss-resume">
+        <span>Retomar do checkpoint anterior</span>
+      </label>
+    </div>
+
+    <!-- NFS-e config (shown on NFS-e tab) -->
+    <div class="section" id="nfse-config" style="display:none">
+      <div class="section-title">Configuração NFS-e</div>
+      <div class="form-field">
+        <label class="form-label">Período (MMAAAA) *</label>
+        <input class="form-input mono" type="text" id="nfse-period" placeholder="062026" maxlength="6">
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+        <span class="form-label" style="margin:0">Empresas</span>
+        <div class="sel-pill"><span id="selCount">0</span> selecionadas</div>
+      </div>
+    </div>
+
+    <!-- Company picker (NFS-e tab only) -->
+    <div class="company-picker" id="company-picker">
+      <div class="picker-meta">
+        <span class="picker-count" id="pickerCount">0 empresas</span>
+        <div class="picker-actions">
+          <button class="picker-btn" onclick="selectAll()">Todas</button>
+          <button class="picker-btn" onclick="selectNone()">Nenhuma</button>
+        </div>
+      </div>
+      <div class="picker-search">
+        <input class="search-input" type="text" placeholder="Filtrar..." id="searchInput" oninput="filterCompanies(this.value)">
+      </div>
+      <div class="company-list" id="companyList">
+        <div style="padding:20px 16px;text-align:center">
+          <button class="fetch-btn" onclick="fetchCompanies()">
+            ↻ Carregar lista de empresas do portal
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Guias config (shown on Guias tab) -->
+    <div class="section" id="guias-config" style="display:none">
+      <div class="section-title">Configuração Guias</div>
+      <div class="form-field">
+        <label class="form-label">Período (MMAAAA) *</label>
+        <input class="form-input mono" type="text" id="guias-period" placeholder="062026" maxlength="6">
+        <div class="form-hint">Executa para todas as empresas do portal</div>
+      </div>
+      <div class="form-field">
+        <label class="form-label">Pasta de saída</label>
+        <input class="form-input mono" type="text" id="guias-output" placeholder="Desktop\PM_OUTPUT\Guias">
+        <div class="form-hint">Deixe vazio para usar padrão</div>
+      </div>
+    </div>
+
+    <!-- Run button -->
+    <div class="section" style="margin-top:auto">
+      <button class="run-btn green" id="runBtn" onclick="runTask()">
+        <div class="spinner"></div>
+        <span id="runBtnText">Executar</span>
+      </button>
+    </div>
+
+  </div>
+
+  <!-- Right panel -->
+  <div class="right-panel">
+    <div class="module-content">
+
+      <!-- ISS tab -->
+      <div class="module-view active" id="view-iss">
+        <div class="info-box">
+          Verifica todas as empresas do portal e reporta quais têm ISS Substituto no período informado.
+          Empresas onde o período não está disponível ou está em aberto são puladas.
+        </div>
+        <div class="card">
+          <div class="card-title">Progresso</div>
+          <div class="status-msg" id="iss-status"></div>
+          <button class="dl-btn" id="iss-dl" onclick="window.location='/api/iss/download'">⬇ Baixar Relatório XLSX</button>
+          <div class="progress-log" id="iss-log"></div>
+        </div>
+      </div>
+
+      <!-- NFS-e tab -->
+      <div class="module-view" id="view-nfse">
+        <div class="info-box blue">
+          Baixa o XML de movimento econômico por empresa do portal PM, separa em notas individuais,
+          classifica retenções federais e gera planilha por empresa.
+          Selecione empresas específicas ou deixe sem seleção para processar todas.
+        </div>
+        <div class="card">
+          <div class="card-title">Progresso</div>
+          <div class="status-msg" id="nfse-status"></div>
+          <button class="dl-btn" id="nfse-dl" onclick="downloadNfse()" style="border-color:var(--accent2);color:var(--accent2)">⬇ Baixar ZIP</button>
+          <div id="nfse-output-path" style="display:none;margin-bottom:10px;padding:8px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);font-size:12px;font-family:var(--font-mono);color:var(--text-secondary);word-break:break-all"></div>
+          <div class="progress-log" id="nfse-log"></div>
+        </div>
+        <div class="card" id="summary-card" style="display:none">
+          <div class="card-title">Resumo</div>
+          <table class="summary-table" id="summaryTable">
+            <thead><tr><th>Empresa</th><th>Total Notas</th><th>Retenção Federal</th></tr></thead>
+            <tbody id="summaryBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Guias tab -->
+      <div class="module-view" id="view-guias">
+        <div class="info-box" style="background:var(--accent3-light);border-color:rgba(192,92,0,.2);border-left-color:var(--accent3)">
+          Verifica todas as empresas do portal e baixa as guias/boletos disponíveis para o período informado.
+          Guias geralmente só ficam disponíveis após o dia 2-3 de cada mês.
+          PDFs salvos em <strong>PM_OUTPUT/Guias/MM-AAAA/</strong> por empresa.
+        </div>
+        <div class="card">
+          <div class="card-title">Progresso</div>
+          <div class="status-msg" id="guias-status"></div>
+          <div class="progress-log" id="guias-log"></div>
+        </div>
+        <div class="card" id="guias-summary-card" style="display:none">
+          <div class="card-title">Guias Encontradas</div>
+          <table class="summary-table">
+            <thead><tr><th>Empresa</th><th>Guias baixadas</th></tr></thead>
+            <tbody id="guiasSummaryBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+let currentTab = 'iss';
+let allCompanies = [];
+let selectedCMCs = new Set();
+
+// Request notification permission on load
+async function requestNotificationPermission() {
+  if ('Notification' in window && Notification.permission === 'default') {
+    await Notification.requestPermission();
+  }
+}
+
+function sendNotification(title, body) {
+  if ('Notification' in window && Notification.permission === 'granted') {
+    const n = new Notification(title, { body, icon: '' });
+    setTimeout(() => n.close(), 8000);
+  }
+}
+
+// ── Tab switching ──────────────────────────────────────────────────────────
+function switchTab(name) {
+  document.querySelectorAll('.module-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.module-view').forEach(v => v.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  document.getElementById('view-' + name).classList.add('active');
+  document.getElementById('iss-config').style.display   = name === 'iss'   ? '' : 'none';
+  document.getElementById('nfse-config').style.display  = name === 'nfse'  ? '' : 'none';
+  document.getElementById('guias-config').style.display = name === 'guias' ? '' : 'none';
+  document.getElementById('company-picker').classList.toggle('active', name === 'nfse');
+  const btn = document.getElementById('runBtn');
+  btn.className = 'run-btn ' + (name === 'iss' ? 'green' : name === 'nfse' ? 'blue' : 'orange');
+  currentTab = name;
+}
+
+// ── Settings ───────────────────────────────────────────────────────────────
+async function saveSettings() {
+  const s = { user: document.getElementById('user').value, password: document.getElementById('password').value };
+  await fetch('/api/settings', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(s) });
+  const btn = document.querySelector('.save-btn');
+  btn.textContent = 'Salvo ✓';
+  setTimeout(() => btn.textContent = 'Salvar credenciais', 1500);
+}
+
+async function init() {
+  requestNotificationPermission();
+  try {
+    const r = await fetch('/api/settings');
+    const s = await r.json();
+    if (s.user)     document.getElementById('user').value     = s.user;
+    if (s.password) document.getElementById('password').value = s.password;
+  } catch(e) {}
+  // Try to load cached company list
+  try {
+    const r = await fetch('/api/companies');
+    const list = await r.json();
+    if (list.length) {
+      renderCompanies(list);
+      document.getElementById('companyList').insertAdjacentHTML('afterbegin',
+        `<div style="padding:6px 16px;background:var(--surface2);border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center">
+          <span style="font-size:11px;color:var(--text-muted)">${list.length} empresas em cache</span>
+          <button onclick="fetchCompanies()" style="background:none;border:none;color:var(--accent2);font-size:11px;cursor:pointer;font-family:var(--font)">↻ Atualizar</button>
+        </div>`
+      );
+    }
+  } catch(e) {}
+}
+
+// ── Company list ───────────────────────────────────────────────────────────
+async function fetchCompanies() {
+  const list = document.getElementById('companyList');
+  list.innerHTML = '<div style="padding:20px 16px;text-align:center;color:var(--text-muted);font-size:12px">Carregando... (aguarde o login no portal)</div>';
+  try {
+    const r = await fetch('/api/companies/fetch', { method: 'POST' });
+    const d = await r.json();
+    if (!d.ok) { list.innerHTML = `<div style="padding:16px;color:var(--red);font-size:12px">Erro: ${d.error}</div>`; return; }
+    renderCompanies(d.companies);
+  } catch(e) {
+    list.innerHTML = `<div style="padding:16px;color:var(--red);font-size:12px">Erro: ${e.message}</div>`;
+  }
+}
+
+function renderCompanies(companies) {
+  allCompanies = companies;
+  document.getElementById('pickerCount').textContent = `${companies.length} empresas`;
+  filterCompanies('');
+}
+
+function filterCompanies(q) {
+  const list = document.getElementById('companyList');
+  const filtered = q ? allCompanies.filter(c => c.name.toLowerCase().includes(q.toLowerCase()) || c.id.includes(q)) : allCompanies;
+  if (!filtered.length) {
+    list.innerHTML = '<div style="padding:16px;text-align:center;color:var(--text-muted);font-size:12px">Nenhuma empresa encontrada</div>';
+    return;
+  }
+  list.innerHTML = '';
+  filtered.forEach(c => {
+    const item = document.createElement('div');
+    item.className = 'company-item' + (selectedCMCs.has(c.id) ? ' selected' : '');
+    item.dataset.id = c.id;
+    item.onclick = () => toggleCompany(c.id, item);
+    item.innerHTML = `<div class="co-check"></div><div style="min-width:0"><div class="co-name">${c.name}</div><div class="co-id">CMC: ${c.id}</div></div>`;
+    list.appendChild(item);
+  });
+}
+
+function toggleCompany(id, el) {
+  if (selectedCMCs.has(id)) { selectedCMCs.delete(id); el.classList.remove('selected'); }
+  else { selectedCMCs.add(id); el.classList.add('selected'); }
+  updateSelCount();
+}
+
+function selectAll() {
+  allCompanies.forEach(c => selectedCMCs.add(c.id));
+  document.querySelectorAll('.company-item').forEach(el => el.classList.add('selected'));
+  updateSelCount();
+}
+
+function selectNone() {
+  selectedCMCs.clear();
+  document.querySelectorAll('.company-item').forEach(el => el.classList.remove('selected'));
+  updateSelCount();
+}
+
+function updateSelCount() {
+  document.getElementById('selCount').textContent = selectedCMCs.size || 'todas';
+}
+
+// ── Logging ────────────────────────────────────────────────────────────────
+function setStatus(prefix, type, msg) {
+  const el = document.getElementById(prefix + '-status');
+  el.className = `status-msg show ${type}` + (prefix === 'nfse' && type === 'running' ? ' blue' : '');
+  el.textContent = msg;
+}
+
+function addLog(prefix, msg) {
+  const log = document.getElementById(prefix + '-log');
+  log.classList.add('show');
+  const line = document.createElement('div');
+  const isErr = msg.includes('ERRO') || msg.includes('ERROR');
+  const isOk  = msg.includes('✓') || msg.includes('Concluído');
+  line.className = 'log-line' + (isErr ? ' err' : isOk ? ' ok' : '');
+  line.textContent = msg;
+  log.appendChild(line);
+  log.scrollTop = log.scrollHeight;
+}
+
+function clearLog(prefix) {
+  const log = document.getElementById(prefix + '-log');
+  log.innerHTML = ''; log.classList.remove('show');
+}
+
+// ── Run ────────────────────────────────────────────────────────────────────
+function runTask() {
+  if (currentTab === 'iss')   runIss();
+  else if (currentTab === 'nfse')  runNfse();
+  else runGuias();
+}
+
+async function runGuias() {
+  const user   = document.getElementById('user').value.trim();
+  const pass   = document.getElementById('password').value.trim();
+  const period = document.getElementById('guias-period').value.trim();
+  if (!user || !pass)  { setStatus('guias', 'error', 'Informe usuário e senha'); return; }
+  if (!period || !/^\d{6}$/.test(period)) { setStatus('guias', 'error', 'Período obrigatório — MMAAAA'); return; }
+  document.getElementById('guias-summary-card').style.display = 'none';
+  setStatus('guias', 'running', 'Iniciando...');
+  await streamRun('/api/guias/run',
+    { user, password: pass, target_period: period },
+    'guias',
+    (code) => {
+      setStatus('guias', code === 0 ? 'success' : 'error', code === 0 ? 'Concluído — guias salvas na pasta de output' : 'Processo encerrado com erros');
+      sendNotification('Guias/Boletos — Concluído', code === 0 ? 'PDFs salvos na pasta de output.' : 'Processo encerrado com erros.');
+    }
+  );
+}
+
+async function streamRun(endpoint, payload, logPrefix, onDone) {
+  const btn = document.getElementById('runBtn');
+  btn.disabled = true; btn.classList.add('running');
+  clearLog(logPrefix);
+
+  const res = await fetch(endpoint, {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify(payload)
+  });
+
+  if (!res.ok) {
+    const d = await res.json().catch(() => ({}));
+    setStatus(logPrefix, 'error', d.error || 'Erro ao iniciar');
+    btn.disabled = false; btn.classList.remove('running');
+    return;
+  }
+
+  const reader = res.body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = '';
+  let lastEvent = '';
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    buffer += decoder.decode(value, { stream: true });
+    const lines = buffer.split('\n');
+    buffer = lines.pop();
+    for (const line of lines) {
+      if (line.startsWith('event: ')) { lastEvent = line.slice(7).trim(); continue; }
+      if (line.startsWith('data: ')) {
+        const data = line.slice(6);
+        if (lastEvent === 'done') { onDone(parseInt(data)); lastEvent = ''; }
+        else if (lastEvent === 'xlsx_ready') { document.getElementById('iss-dl').classList.add('show'); lastEvent = ''; }
+        else if (lastEvent === 'summary') {
+        if (currentTab === 'guias') renderGuiasSummary(JSON.parse(data));
+        else renderSummary(JSON.parse(data));
+        lastEvent = '';
+      }
+        else { addLog(logPrefix, data); }
+      }
+    }
+  }
+
+  btn.disabled = false; btn.classList.remove('running');
+}
+
+async function runIss() {
+  const user   = document.getElementById('user').value.trim();
+  const pass   = document.getElementById('password').value.trim();
+  const period = document.getElementById('iss-period').value.trim();
+  const limit  = document.getElementById('iss-limit').value.trim();
+  const resume = document.getElementById('iss-resume').checked;
+
+  const workers = parseInt(document.getElementById('iss-workers').value) || 4;
+
+  if (!user || !pass) { setStatus('iss', 'error', 'Informe usuário e senha'); return; }
+  if (period && !/^\d{6}$/.test(period)) { setStatus('iss', 'error', 'Período inválido — use MMAAAA'); return; }
+
+  document.getElementById('iss-dl').classList.remove('show');
+  setStatus('iss', 'running', 'Iniciando...');
+
+  await streamRun('/api/iss/run',
+    { user, password: pass, target_period: period, limit: limit ? parseInt(limit) : null, resume, workers },
+    'iss',
+    (code) => {
+      const msg = code === 0 ? 'Concluído — clique em Baixar para obter o relatório' : 'Processo encerrado com erros';
+      setStatus('iss', code === 0 ? 'success' : 'error', msg);
+      if (code === 0) document.getElementById('iss-dl').classList.add('show');
+      sendNotification('ISS Substituto — Concluído', code === 0 ? 'Relatório pronto para download.' : 'Processo encerrado com erros.');
+    }
+  );
+}
+
+async function runNfse() {
+  const user   = document.getElementById('user').value.trim();
+  const pass   = document.getElementById('password').value.trim();
+  const period = document.getElementById('nfse-period').value.trim();
+
+  if (!user || !pass) { setStatus('nfse', 'error', 'Informe usuário e senha'); return; }
+  if (!period || !/^\d{6}$/.test(period)) { setStatus('nfse', 'error', 'Período obrigatório — use MMAAAA'); return; }
+
+  document.getElementById('summary-card').style.display = 'none';
+  setStatus('nfse', 'running', 'Iniciando...');
+
+  await streamRun('/api/nfse/run',
+    { user, password: pass, target_period: period, selected: [...selectedCMCs] },
+    'nfse',
+    (code) => {
+      setStatus('nfse', code === 0 ? 'success' : 'error', code === 0 ? 'Concluido - clique em Baixar ZIP' : 'Processo encerrado com erros');
+      sendNotification('NFS-e PM - Concluido', code === 0 ? 'Arquivos prontos para download.' : 'Processo encerrado com erros.');
+      if (code === 0) document.getElementById('nfse-dl').classList.add('show');
+    }
+  );
+}
+
+function downloadNfse() {
+  const period = document.getElementById('nfse-period').value.trim();
+  fetch('/api/nfse/download', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({target_period: period})
+  }).then(r => {
+    if (!r.ok) return r.json().then(d => { alert(d.error); });
+    return r.blob().then(blob => {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = `nfse_pm_${period.slice(0,2)}-${period.slice(2)}.zip`;
+      document.body.appendChild(a); a.click(); a.remove();
+      URL.revokeObjectURL(url);
+    });
+  });
+}
+
+function renderSummary(rows) {
+  document.getElementById('summary-card').style.display = '';
+  const tbody = document.getElementById('summaryBody');
+  tbody.innerHTML = '';
+  rows.sort((a, b) => b.federal - a.federal);
+  rows.forEach(r => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${r.name}</td><td style="text-align:center">${r.total}</td><td style="text-align:center">${r.federal > 0 ? `<span class="badge-fed">${r.federal}</span>` : '—'}</td>`;
+    tbody.appendChild(tr);
+  });
+}
+
+function renderGuiasSummary(rows) {
+  const card = document.getElementById('guias-summary-card');
+  card.style.display = '';
+  const tbody = document.getElementById('guiasSummaryBody');
+  tbody.innerHTML = '';
+  rows.filter(r => r.boletos > 0).sort((a, b) => b.boletos - a.boletos).forEach(r => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${r.name}</td><td style="text-align:center"><span class="badge-fed">${r.boletos}</span></td>`;
+    tbody.appendChild(tr);
+  });
+  if (!rows.some(r => r.boletos > 0)) {
+    tbody.innerHTML = '<tr><td colspan="2" style="text-align:center;color:var(--text-muted)">Nenhum boleto disponível</td></tr>';
+  }
+}
+
+init();
+</script>
+</body>
+</html>
